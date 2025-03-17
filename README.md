@@ -3,6 +3,7 @@
 # Abstract
 - Heart Rate (HR) is one of the most important Physiological parameter and a vital indicator of people‘s physiological state
 - A non-contact based system to measure Heart Rate: real-time application using camera
+- Warning Message appears when low or high heart rate measured.
 - Principal: extract heart rate information from facial skin color variation caused by blood circulation 
 - Application: monitoring drivers‘ physiological state
 
