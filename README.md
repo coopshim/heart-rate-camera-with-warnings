@@ -14,10 +14,16 @@
 - Amplify color to make the color variation visible 
 
 # Requirements
+- Python version 3.12 (or lower)
+- pip (package manager)
+
 ```
 pip install -r requirements.txt
 ```
-
+```
+python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
+```
+- Note: If you have lower version of Python, please install Dlib here : https://github.com/z-mahmud22/Dlib_Windows_Python3.x
 
 # Implementation
 ```
