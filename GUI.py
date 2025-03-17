@@ -202,41 +202,66 @@ class GUI(QMainWindow, QThread):
         self.process.frame_in = frame
         if self.terminate == False:
             ret = self.process.run()
-        
-        # cv2.imshow("Processed", frame)
+    
+        # 처리 결과에 따라 frame, ROI, 심박수 업데이트
         if ret == True:
-            self.frame = self.process.frame_out #get the frame to show in GUI
-            self.f_fr = self.process.frame_ROI #get the face to show in GUI
-            #print(self.f_fr.shape)
-            self.bpm = self.process.bpm #get the bpm change over the time
+            self.frame = self.process.frame_out  # GUI에 출력할 프레임
+            self.f_fr = self.process.frame_ROI   # 얼굴 ROI 프레임
+            self.bpm = self.process.bpm          # 현재 심박수 값
         else:
             self.frame = frame
             self.f_fr = np.zeros((10, 10, 3), np.uint8)
             self.bpm = 0
-        
+    
+        # OpenCV의 putText()를 사용하기 위해 프레임을 RGB에서 BGR로 변환
         self.frame = cv2.cvtColor(self.frame, cv2.COLOR_RGB2BGR)
+    
+        # FPS 정보 오버레이(기존 기능)
         cv2.putText(self.frame, "FPS "+str(float("{:.2f}".format(self.process.fps))),
-                       (20,460), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 255),2)
-        img = QImage(self.frame, self.frame.shape[1], self.frame.shape[0], 
-                        self.frame.strides[0], QImage.Format_RGB888)
-        self.lblDisplay.setPixmap(QPixmap.fromImage(img))
-        
-        self.f_fr = cv2.cvtColor(self.f_fr, cv2.COLOR_RGB2BGR)
-        #self.lblROI.setGeometry(660,10,self.f_fr.shape[1],self.f_fr.shape[0])
-        self.f_fr = np.transpose(self.f_fr,(0,1,2)).copy()
-        f_img = QImage(self.f_fr, self.f_fr.shape[1], self.f_fr.shape[0], 
-                       self.f_fr.strides[0], QImage.Format_RGB888)
-        self.lblROI.setPixmap(QPixmap.fromImage(f_img))
-        
-        self.lblHR.setText("Freq: " + str(float("{:.2f}".format(self.bpm))))
-        
-        if self.process.bpms.__len__() >50:
-            if(max(self.process.bpms-np.mean(self.process.bpms))<5): #show HR if it is stable -the change is not over 5 bpm- for 3s
-                self.lblHR2.setText("Heart rate: " + str(float("{:.2f}".format(np.mean(self.process.bpms)))) + " bpm")
+                   (20,460), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 255), 2)
+    
+        # 심박수 측정 값 설정
+        HIGH_THRESHOLD = 150    # 높은 심박수 
+        LOW_THRESHOLD = 60      # 낮은 심박수    
+        NO_THRESHOLD = 0        # 심박수가 측정되지 아니함
 
-        #self.make_bpm_plot()#need to open a cv2.imshow() window to handle a pause 
-        #QtTest.QTest.qWait(10)#wait for the GUI to respond
-        self.key_handler()  #if not the GUI cant show anything
+        # 심박수가 측정되지 않을 때 상태 메시지 표출(초기 부팅시, 얼굴 미감지시)
+        if self.bpm == NO_THRESHOLD:
+            cv2.putText(self.frame, "SYSTEM: Heart Rate Not Detected", (20, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+            
+        # 심박수가 임계 값보다 높거나 낮을 경우 경고를 표출
+        elif self.bpm > HIGH_THRESHOLD or (0 < self.bpm < LOW_THRESHOLD):
+            cv2.putText(self.frame, "WARNING: Abnormal Heart Rate!", (20, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), 2)
+
+        # 그 외의 경우는 '정상 심박수'로 판정     
+        else:
+            cv2.putText(self.frame, "SYSTEM: Heart Rate Normal", (20, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+    
+        # 변경된 프레임을 QImage로 변환하여 라벨에 출력
+        img = QImage(self.frame, self.frame.shape[1], self.frame.shape[0], 
+                    self.frame.strides[0], QImage.Format_RGB888)
+        self.lblDisplay.setPixmap(QPixmap.fromImage(img))
+    
+        # ROI 영상 처리 및 출력
+        self.f_fr = cv2.cvtColor(self.f_fr, cv2.COLOR_RGB2BGR)
+        self.f_fr = np.transpose(self.f_fr, (0,1,2)).copy()
+        f_img = QImage(self.f_fr, self.f_fr.shape[1], self.f_fr.shape[0], 
+                    self.f_fr.strides[0], QImage.Format_RGB888)
+        self.lblROI.setPixmap(QPixmap.fromImage(f_img))
+    
+        # 실시간 심박수 및 주파수 표출 관련 (우측/기존기능)  
+        self.lblHR.setText("Freq: " + str(float("{:.2f}".format(self.bpm))))
+    
+        if len(self.process.bpms) > 50:
+            if (max(self.process.bpms - np.mean(self.process.bpms)) < 5):
+                self.lblHR2.setText("Heart rate: " + str(float("{:.2f}".format(np.mean(self.process.bpms)))) + " bpm")
+    
+        # 키 입력 처리
+        self.key_handler()  # cv2 창이 활성화 되어 있어야 키 입력이 감지됨
+
 
     def run(self, input):
         print("run")
