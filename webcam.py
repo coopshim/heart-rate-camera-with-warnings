@@ -11,7 +11,7 @@ class Webcam(object):
     def start(self):
         print("[INFO] Start webcam")
         time.sleep(1) # wait for camera to be ready
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0) # 내장 카메라 사용시 0, 외부 웹캠 사용시 1 혹은 다른 숫자 입력
         self.valid = False
         try:
             resp = self.cap.read()
