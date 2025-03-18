@@ -1,5 +1,5 @@
 # Heart-rate-measurement-using-camera-with-warning-messages
-
+![Result](https://github.com/coopshim/heart-rate-camera-with-warnings/blob/master/result2.png)
 # Abstract
 - Heart Rate (HR) is one of the most important Physiological parameter and a vital indicator of people‘s physiological state
 - A non-contact based system to measure Heart Rate: real-time application using camera
@@ -30,11 +30,22 @@ python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
 ```
 python GUI.py
 ```
+- "GUI.py" is the regarcy programme by Khanh Ha Nguyen, added warning message function
 - In case of plotting graphs, run "graph_plot.py" 
 - For the Eulerian Video Magnification implementation, run "amplify_color.py"
+```
+python GUI_test.py
+```
+- New functions: "GUI_test.py" is in the development progress. (fixed programme problems, added Responsive GUI, etc.)
 
 # Results
 - Data from a specialized device, Compact 5 medical Econet, is used for the ground truth. In certain circumstances, the Heart rate values measured using the application and the device are the same
+![Result2](https://github.com/coopshim/heart-rate-camera-with-warnings/blob/master/result1.png)
+- Warnings appear under the following conditions :
+  - SYSTEM: Heart rate not detected - if the system cannot detect the heart rate
+  - WARNING: Abnormal Heart Rate! - if the system detects unusual heart rates
+  - SYSTEM: Heart Rate Normal
+- NOTE : Heart-rate warning function is in the development stage. It may not work as intended.
 
 # Reference
 - Original project by Khanh Ha Nguyen (https://github.com/habom2310/Heart-rate-measurement-using-camera)
