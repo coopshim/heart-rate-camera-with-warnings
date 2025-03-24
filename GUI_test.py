@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 from PyQt5 import QtCore
-from PyQt5.QtCore import QThread, Qt
+#from PyQt5.QtCore import QThread, Qt  // QThread는 레거시 프로그램용   
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QImage, QPixmap
 from PyQt5.QtWidgets import (QPushButton, QApplication, QComboBox, QLabel, QFileDialog,
                              QStatusBar, QMessageBox, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout)
@@ -32,12 +33,12 @@ class GUI(QMainWindow):
         font = QFont()
         font.setPointSize(16)
 
-        # 중앙 위젯 및 레이아웃 사용 (반응형 인터페이스)
+        # 중앙 위젯 및 레이아웃 (반응형 인터페이스)
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
 
-        # 왼쪽 레이아웃: 웹캠 영상 표시
+        # 왼쪽 레이아웃 (웹캠 영상)
         left_layout = QVBoxLayout()
         self.lblDisplay = QLabel()
         self.lblDisplay.setStyleSheet("background-color: #000000")
@@ -45,12 +46,13 @@ class GUI(QMainWindow):
         self.lblDisplay.setScaledContents(True)  # QPixmap이 라벨 크기에 맞게 자동 조절됨
         left_layout.addWidget(self.lblDisplay)
 
-        # 오른쪽 레이아웃: 컨트롤 및 상태 표시
+        # 오른쪽 레이아웃 (컨트롤박스 및 기타 위젯)
         right_layout = QVBoxLayout()
-        # 상단 컨트롤 버튼들
+        
+        # 컨트롤 박스
         self.cbbInput = QComboBox(self)
-        self.cbbInput.addItem("Webcam")
-        self.cbbInput.addItem("Video")
+        self.cbbInput.addItem("Camera Input: Number " + str(self.webcam.index))
+        self.cbbInput.addItem("Recorded Video")
         self.cbbInput.setCurrentIndex(0)
         self.cbbInput.setFont(font)
         self.cbbInput.activated.connect(self.selectInput)
@@ -64,26 +66,29 @@ class GUI(QMainWindow):
         self.btnStart.setFont(font)
         self.btnStart.clicked.connect(self.run)
 
-        # 상태 표시 라벨들
+        # 상태 표시 라벨 (Freq, HR)
         self.lblHR = QLabel("Frequency: ", self)
         self.lblHR.setFont(font)
         self.lblHR2 = QLabel("Heart rate: ", self)
         self.lblHR2.setFont(font)
 
-        # ROI(얼굴) 영상 표시 (크기는 고정할 수도 있고 레이아웃에 따라 변하게 할 수도 있음)
+        # ROI 영상 표시
+        self.lblROIinfo = QLabel("ROI: ")
+        self.lblROIinfo.setFont(font)
         self.lblROI = QLabel(self)
         self.lblROI.setStyleSheet("background-color: #000000")
-        self.lblROI.setFixedSize(200, 200)
+        self.lblROI.setFixedSize(350, 350)
+        self.lblROI.setScaledContents(True)
 
-        # 동적 플롯 영역 (pyqtgraph)
+        # 플롯 영역 (pyqtgraph: Signal, FFT)
         self.signal_Plt = pg.PlotWidget(self)
         self.signal_Plt.setLabel('bottom', "Signal")
-        self.signal_Plt.setFixedSize(400, 200)
+        self.signal_Plt.setFixedSize(400, 250)
         self.fft_Plt = pg.PlotWidget(self)
         self.fft_Plt.setLabel('bottom', "FFT")
-        self.fft_Plt.setFixedSize(400, 200)
+        self.fft_Plt.setFixedSize(400, 250)
 
-        # 오른쪽 레이아웃에 위젯 추가
+        # 오른쪽 레이아웃 위젯 추가
         right_layout.addWidget(self.cbbInput)
         right_layout.addWidget(self.btnOpen)
         right_layout.addWidget(self.btnStart)
@@ -91,9 +96,10 @@ class GUI(QMainWindow):
         right_layout.addWidget(self.fft_Plt)
         right_layout.addWidget(self.lblHR)
         right_layout.addWidget(self.lblHR2)
+        right_layout.addWidget(self.lblROIinfo)
         right_layout.addWidget(self.lblROI)        
 
-        # 메인 레이아웃에 왼쪽, 오른쪽 레이아웃 배치
+        # 메인 레이아웃: 왼쪽, 오른쪽 레이아웃 배치
         main_layout.addLayout(left_layout, 2)  # 왼쪽 영역은 좀 더 크게
         main_layout.addLayout(right_layout, 1)
 
@@ -101,17 +107,20 @@ class GUI(QMainWindow):
         self.statusBar = QStatusBar()
         self.statusBar.setFont(font)
         self.setStatusBar(self.statusBar)
-        self.statusBar.showMessage("Input: webcam", 5000)
+        self.statusBar.showMessage("INPUT: Camera Number " + str(self.webcam.index))
 
         # 타이머 (플롯 업데이트)
         self.timer = pg.QtCore.QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(200)
 
-        # 메인 창 기본 설정 (초기 해상도)
-        self.setWindowTitle("Heart rate monitor")
-        self.resize(1600, 900)  # 초기 창 크기를 더 크게 설정
+        # 메인 창 기본 설정 
+        self.setWindowTitle("HR monitor with Warnings (0.1 Beta)")
+        self.resize(1600, 1000)  
         self.show()
+        
+        # 프로그램 시작시 자동 시작
+        QtCore.QTimer.singleShot(0, self.run)
 
     def update(self):
         self.signal_Plt.clear()
@@ -120,10 +129,9 @@ class GUI(QMainWindow):
         self.fft_Plt.plot(np.column_stack((self.process.freqs, self.process.fft)), pen='g')
 
     def closeEvent(self, event):
-        reply = QMessageBox.question(self, "Message", "Are you sure want to quit",
+        reply = QMessageBox.question(self, "Message", "Are you sure want to quit?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if reply == QMessageBox.Yes:
-            # 종료 플래그 설정 및 타이머 정지
             self.status = False
             self.terminate = True
             self.timer.stop()
@@ -209,7 +217,7 @@ class GUI(QMainWindow):
                        self.f_fr.strides[0], QImage.Format_RGB888)
         self.lblROI.setPixmap(QPixmap.fromImage(f_img))
 
-        self.lblHR.setText("Freq: " + str(float("{:.2f}".format(self.bpm))))
+        self.lblHR.setText("Frequency: " + str(float("{:.2f}".format(self.bpm)))+ " Hz")
         if len(self.process.bpms) > 50:
             if (max(self.process.bpms - np.mean(self.process.bpms)) < 5):
                 self.lblHR2.setText("Heart rate: " + str(float("{:.2f}".format(np.mean(self.process.bpms)))) + " bpm")
