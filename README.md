@@ -30,13 +30,13 @@ python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
 ```
 python GUI.py
 ```
-- "GUI.py" is the regarcy programme by Khanh Ha Nguyen, added warning message function
+- "GUI.py" is the regarcy programme by Khanh Ha Nguyen, added warning message function. for new functions and bugs fix, run "GUI_test.py".
 - In case of plotting graphs, run "graph_plot.py" 
 - For the Eulerian Video Magnification implementation, run "amplify_color.py"
 ```
 python GUI_test.py
 ```
-- New functions: "GUI_test.py" is in the development progress. (fixed programme problems, added Responsive GUI, etc.)
+- New functions: "GUI_test.py" is in the development progress. (fixed bugs, added responsive GUI, automatic camera start, etc.)
 
 # Results
 - Data from a specialized device, Compact 5 medical Econet, is used for the ground truth. In certain circumstances, the Heart rate values measured using the application and the device are the same
@@ -60,6 +60,4 @@ python GUI_test.py
 - Application can only detect HR for 1 people at a time
 - Sudden change can cause incorrect HR calculation. In the most case, HR can be correctly detected after 10 seconds being stable infront of the camera
 - This github project is for study purpose only.
-- Original project by Khanh Ha Nguyen (khanhhanguyen2310@gmail.com)
-- Warning Messages edited by Seunghyeop Shim
 
