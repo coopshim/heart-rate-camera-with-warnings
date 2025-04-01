@@ -54,6 +54,7 @@ python GUI_test.py
 - Non-contact, automated cardiac pulse measurements using video imaging and blind source separation by Ming-Zher Poh, Daniel J. McDuff, and Rosalind W. Picard
 - Camera-based Heart Rate Monitoring by Janus Nørtoft Jensen and Morten Hannemose
 - Graphs plotting is based on https://github.com/thearn/webcam-pulse-detector
+- Facial landmarks from dlib (shape predictor face landmarks data).
 - https://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/
 
 # Note
